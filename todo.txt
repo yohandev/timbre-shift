@@ -1,0 +1,3 @@
+experiments to do:
+- app where you draw the waveform and adjust the frequency slider. the app then plays whatever you drew
+- app that takes in audio input, runs it through the fourier transform and plays only the most prominent frequency at any point in time

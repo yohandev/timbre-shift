@@ -1,0 +1,9 @@
+[package]
+name = "timbre-shift"
+version = "0.1.0"
+authors = ["yohandev"]
+edition = "2018"
+
+[dependencies]
+framework = { path = "../framework-rs" }
+rodio = "0.13.0"
