@@ -49,9 +49,19 @@ impl Default for TimbreShift
         use crate::beep::notes::*;
 
         let notes = CHROMATIC_SCALE
-            .windows(5)
+            // major chord arpeggios:
+            .windows(7)
+            .flat_map(|hz| hz
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| match i { 0 | 3 | 6 => true, _ => false }))
+                .map(|(_, hz)| hz)
             .enumerate()
-            .map(|(i, hz)| (i as u64 * 30, Beep::chord(&[hz[0], hz[2], hz[4]])))
+            .map(|(i, hz)| (i as u64 * 10, Beep::note(*hz)))
+            // major chords:
+            //.windows(7)
+            //.enumerate()
+            //.map(|(i, hz)| (i as u64 * 30, Beep::chord(&[hz[0], hz[3], hz[6]])))
             .collect::<Vec<_>>();
 
         Self
