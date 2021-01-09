@@ -21,6 +21,7 @@ pub struct Beep
 }
 
 /// ~ beeeeeeeeeeeee ~
+#[derive(Debug, Clone)]
 pub struct HarmoniousBeep
 {
     /// all the beeps within this beep
