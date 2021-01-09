@@ -3,29 +3,18 @@
 use framework::sound::*;
 
 /// beeeeeeeeeeeeeee
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone)]
 pub struct Beep
 {
-    /// frequency
-    hz: f32,
-
-    /// current phase
-    phase: f32,
-    /// how much to increment phase by
-    phase_inc: f32,
+    /// (frequency, phase, cached phase++)
+    waves: Box<[(f32, f32, f32)]>,
+    /// volume multiplier of an individual note
+    vol: f32,
 
     /// total number of channels
     channels: usize,
     /// counts up down from channels
     channels_iter: usize,
-}
-
-/// ~ beeeeeeeeeeeee ~
-#[derive(Debug, Clone)]
-pub struct HarmoniousBeep
-{
-    /// all the beeps within this beep
-    beeps: Box<[Beep]>
 }
 
 impl Track for Beep
@@ -34,21 +23,36 @@ impl Track for Beep
 
     fn next_sample(&mut self) -> Option<Self::Format>
     {
+        // increment once for every channel
+        // TODO: make API better for channels
         if self.channels_iter == 0
         {
             self.channels_iter = self.channels;
-            self.phase = (self.phase + self.phase_inc) % 1.0;
+
+            for (_, phase, phase_inc) in self.waves.iter_mut()
+            {
+                *phase = (*phase + *phase_inc) % 1.0;
+            }
         }
         self.channels_iter -= 1;
 
-        Some(self.phase.sin())
+        // sum waves
+        Some(self.waves
+            .iter()
+            .map(|(_, p, _)| p.sin() * self.vol)
+            .sum())
     }
 
     fn tune(&mut self, channels: usize, sample_rate: usize)
     {
-        self.phase = 0.0;
-        self.phase_inc = self.hz / sample_rate as f32;
-
+        // build waves
+        for (hz, phase, phase_inc) in self.waves.iter_mut()
+        {
+            *phase = 0.0;
+            *phase_inc = *hz / sample_rate as f32;
+        }   
+        
+        // channels
         self.channels = channels;
         self.channels_iter = channels;
     }
@@ -56,53 +60,28 @@ impl Track for Beep
 
 impl Beep
 {
-    pub fn new(hz: f32) -> Self
+    /// create a beep from a single note's frequency
+    pub fn note(hz: f32) -> Self
     {
-        Self { hz, ..Default::default() }    
+        Self::chord(&[hz])
     }
 
-    /// equivalent of `Beep::new(0.0)` or `Beep::default()`
-    pub const fn zero() -> Self
+    /// create a beep form a chord's note frequencies
+    pub fn chord(hz: &[f32]) -> Self
     {
+        let waves = hz
+            .iter()
+            .map(|f| (*f, 0.0, 0.0))
+            .collect::<Box<[_]>>();
+        let vol = waves.len() as f32;
+
         Self
         {
-            hz: 0.0,
-            phase: 0.0,
-            phase_inc: 0.0,
+            waves,
+            vol,
             channels: 0,
-            channels_iter: 0
+            channels_iter: 0,
         }
-    }
-}
-
-impl Track for HarmoniousBeep
-{
-    type Format = f32;
-
-    fn next_sample(&mut self) -> Option<Self::Format>
-    {
-        let len = self.beeps.len() as f32;
-        let sum = self.beeps
-            .iter_mut()
-            .map(|i| i.next_sample().unwrap() / len)
-            .sum();
-        
-        Some(sum)
-    }
-
-    fn tune(&mut self, channels: usize, sample_rate: usize)
-    {
-        self.beeps
-            .iter_mut()
-            .for_each(|i| i.tune(channels, sample_rate));
-    }
-}
-
-impl HarmoniousBeep
-{
-    pub const fn new(beeps: Box<[Beep]>) -> Self
-    {
-        Self { beeps }
     }
 }
 
@@ -110,36 +89,36 @@ impl HarmoniousBeep
 #[allow(non_upper_case_globals)]
 pub mod notes
 {
-    use super::{ Beep, HarmoniousBeep };
+    //use super::Beep;
 
-    pub const A3:  Beep = Beep { hz: 220.00, ..Beep::zero() };
-    pub const Bb3: Beep = Beep { hz: 233.08, ..Beep::zero() };
-    pub const B3:  Beep = Beep { hz: 246.94, ..Beep::zero() };
-    pub const C4:  Beep = Beep { hz: 261.63, ..Beep::zero() };
-    pub const Db4: Beep = Beep { hz: 277.18, ..Beep::zero() };
-    pub const D4:  Beep = Beep { hz: 293.66, ..Beep::zero() };
-    pub const Eb4: Beep = Beep { hz: 311.13, ..Beep::zero() };
-    pub const E4:  Beep = Beep { hz: 329.63, ..Beep::zero() };
-    pub const F4:  Beep = Beep { hz: 349.23, ..Beep::zero() };
-    pub const Gb4: Beep = Beep { hz: 369.99, ..Beep::zero() };
-    pub const G4:  Beep = Beep { hz: 392.00, ..Beep::zero() };
-    pub const Ab4: Beep = Beep { hz: 415.30, ..Beep::zero() };
-    pub const A4:  Beep = Beep { hz: 440.00, ..Beep::zero() };
-    pub const Bb4: Beep = Beep { hz: 466.16, ..Beep::zero() };
-    pub const B4:  Beep = Beep { hz: 493.88, ..Beep::zero() };
-    pub const C5:  Beep = Beep { hz: 523.25, ..Beep::zero() };
-    pub const Db5: Beep = Beep { hz: 554.37, ..Beep::zero() };
-    pub const D5:  Beep = Beep { hz: 587.33, ..Beep::zero() };
-    pub const Eb5: Beep = Beep { hz: 622.25, ..Beep::zero() };
-    pub const E5:  Beep = Beep { hz: 659.25, ..Beep::zero() };
-    pub const F5:  Beep = Beep { hz: 698.46, ..Beep::zero() };
-    pub const Gb5: Beep = Beep { hz: 739.99, ..Beep::zero() };
-    pub const G5:  Beep = Beep { hz: 783.99, ..Beep::zero() };
-    pub const Ab5: Beep = Beep { hz: 830.61, ..Beep::zero() };
-    pub const A5:  Beep = Beep { hz: 880.00, ..Beep::zero() };
+    pub const A3:  f32 = 220.00;
+    pub const Bb3: f32 = 233.08;
+    pub const B3:  f32 = 246.94;
+    pub const C4:  f32 = 261.63;
+    pub const Db4: f32 = 277.18;
+    pub const D4:  f32 = 293.66;
+    pub const Eb4: f32 = 311.13;
+    pub const E4:  f32 = 329.63;
+    pub const F4:  f32 = 349.23;
+    pub const Gb4: f32 = 369.99;
+    pub const G4:  f32 = 392.00;
+    pub const Ab4: f32 = 415.30;
+    pub const A4:  f32 = 440.00;
+    pub const Bb4: f32 = 466.16;
+    pub const B4:  f32 = 493.88;
+    pub const C5:  f32 = 523.25;
+    pub const Db5: f32 = 554.37;
+    pub const D5:  f32 = 587.33;
+    pub const Eb5: f32 = 622.25;
+    pub const E5:  f32 = 659.25;
+    pub const F5:  f32 = 698.46;
+    pub const Gb5: f32 = 739.99;
+    pub const G5:  f32 = 783.99;
+    pub const Ab5: f32 = 830.61;
+    pub const A5:  f32 = 880.00;
 
-    pub fn a_major() -> HarmoniousBeep
-    {
-        HarmoniousBeep::new(Box::new([A3, Db4, E4]))
-    }
+    // pub fn a_major() -> HarmoniousBeep
+    // {
+    //     HarmoniousBeep::new(Box::new([A3, Db4, E4]))
+    // }
 }

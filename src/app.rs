@@ -1,14 +1,14 @@
 use framework::sound::*;
 use framework::*;
 
-use crate::beep::{ HarmoniousBeep };
+use crate::beep::Beep;
 
 pub struct TimbreShift
 {
     sound: Speakers,
 
     /// (temporary) timestamp and note to play
-    notes: Vec<(u64, HarmoniousBeep)>,
+    notes: Vec<(u64, Beep)>,
 }
 
 impl App for TimbreShift
@@ -51,10 +51,14 @@ impl Default for TimbreShift
         Self
         {
             sound: Speakers::new().unwrap(),
-            notes: [a_major(),]
+            notes: [A3, Bb3, B3, C4, Db4,
+                    D4, Eb4, E4, F4, Gb4,
+                    G4, Ab4, A4, Bb4, B4,
+                    C5, Db5, D5, Eb5, E5,
+                    F5, Gb5, G5, Ab5, A5]
                         .iter()
                         .enumerate()
-                        .map(|(i, n)| (i as u64 * 60, n.clone()))
+                        .map(|(i, hz)| (i as u64 * 15, Beep::note(*hz)))
                         .collect::<Vec<_>>(),
             
         }
