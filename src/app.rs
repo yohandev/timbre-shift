@@ -5,10 +5,6 @@ use crate::beep::Beep;
 
 pub struct TimbreShift
 {
-    // /// audio output device
-    // _stream: OutputStream,
-    // /// audio output device handle
-    // audio: OutputStreamHandle,
     sound: Speakers
 }
 
@@ -24,8 +20,13 @@ impl App for TimbreShift
         // // play the audio
         // self.audio
         //     .play_raw(src)
-        //     .unwrap();   
-        self.sound.play(Beep::default());
+        //     .unwrap();  
+        
+        // temporary... wait for app to be ready
+        // TODO change start() call in framework-rs
+        std::thread::sleep_ms(1000);
+
+        self.sound.play(Beep::A4);
     }
 }
 
@@ -33,9 +34,6 @@ impl Default for TimbreShift
 {
     fn default() -> Self
     {
-        // let (_stream, audio) = OutputStream::try_default().unwrap();
-
-        // Self { _stream, audio }
         Self { sound: Speakers::new().unwrap() }
     }
 }
