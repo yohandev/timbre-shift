@@ -15,7 +15,7 @@ impl SampleIterator for Beep
     fn next_sample(&mut self) -> Option<Self::Format>
     {
         self.phase = (self.phase + self.phase_inc) % 1.0;
-        Some(self.phase)
+        Some(self.phase.sin())
     }
 }
 
