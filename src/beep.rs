@@ -89,7 +89,11 @@ impl Beep
 #[allow(non_upper_case_globals)]
 pub mod notes
 {
-    //use super::Beep;
+    pub const CHROMATIC_SCALE: [f32; 25] =    [A3, Bb3, B3, C4, Db4,
+                                    D4, Eb4, E4, F4, Gb4,
+                                    G4, Ab4, A4, Bb4, B4,
+                                    C5, Db5, D5, Eb5, E5,
+                                    F5, Gb5, G5, Ab5, A5];
 
     pub const A3:  f32 = 220.00;
     pub const Bb3: f32 = 233.08;

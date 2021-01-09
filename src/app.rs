@@ -48,18 +48,16 @@ impl Default for TimbreShift
     {
         use crate::beep::notes::*;
 
+        let notes = CHROMATIC_SCALE
+            .windows(5)
+            .enumerate()
+            .map(|(i, hz)| (i as u64 * 30, Beep::chord(&[hz[0], hz[2], hz[4]])))
+            .collect::<Vec<_>>();
+
         Self
         {
             sound: Speakers::new().unwrap(),
-            notes: [A3, Bb3, B3, C4, Db4,
-                    D4, Eb4, E4, F4, Gb4,
-                    G4, Ab4, A4, Bb4, B4,
-                    C5, Db5, D5, Eb5, E5,
-                    F5, Gb5, G5, Ab5, A5]
-                        .iter()
-                        .enumerate()
-                        .map(|(i, hz)| (i as u64 * 15, Beep::note(*hz)))
-                        .collect::<Vec<_>>(),
+            notes 
             
         }
     }
