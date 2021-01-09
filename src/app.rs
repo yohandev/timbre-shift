@@ -5,7 +5,10 @@ use crate::beep::Beep;
 
 pub struct TimbreShift
 {
-    sound: Speakers
+    sound: Speakers,
+
+    /// (temporary) timestamp and note to play
+    notes: Vec<(u64, Beep)>,
 }
 
 impl App for TimbreShift
@@ -22,11 +25,20 @@ impl App for TimbreShift
         //     .play_raw(src)
         //     .unwrap();  
         
-        // temporary... wait for app to be ready
-        // TODO change start() call in framework-rs
-        std::thread::sleep_ms(1000);
+        // reverse notes to pop() them in order
+        self.notes.reverse();
+    }
 
-        self.sound.play(Beep::A4);
+    fn update(&mut self, time: &Time)
+    {
+        if let Some((tick, note)) = self.notes.last()
+        {
+            if time.tick() >= *tick
+            {
+                self.sound.play(note.clone());
+                self.notes.pop();
+            }
+        }
     }
 }
 
@@ -34,6 +46,18 @@ impl Default for TimbreShift
 {
     fn default() -> Self
     {
-        Self { sound: Speakers::new().unwrap() }
+        use crate::beep::notes::*;
+
+        Self
+        {
+            sound: Speakers::new().unwrap(),
+            notes: vec!
+            [
+                (60, A4), (120, B4),
+                (180, C5), (220, D5),
+                (280, E5), (340, F5),
+                (400, G5), (460, A5),
+            ],
+        }
     }
 }
