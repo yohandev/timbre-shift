@@ -68,8 +68,7 @@ impl Default for TimbreShift
         Self
         {
             sound: Speakers::new().unwrap(),
-            notes 
-            
+            notes
         }
     }
 }
