@@ -8,7 +8,7 @@ pub struct Beep
     phase_inc: f32,
 }
 
-impl SampleIterator for Beep
+impl Track for Beep
 {
     type Format = f32;
 
