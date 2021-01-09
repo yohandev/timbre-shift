@@ -35,7 +35,7 @@ impl App for TimbreShift
         {
             if time.tick() >= *tick
             {
-                self.sound.play(note.clone());
+                self.sound.play(*note);
                 self.notes.pop();
             }
         }
@@ -51,13 +51,12 @@ impl Default for TimbreShift
         Self
         {
             sound: Speakers::new().unwrap(),
-            notes: vec!
-            [
-                (60, A4), (120, B4),
-                (180, C5), (220, D5),
-                (280, E5), (340, F5),
-                (400, G5), (460, A5),
-            ],
+            notes: [A4, B4, C5, D5, E5, F5, G5, A5]
+                        .iter()
+                        .enumerate()
+                        .map(|(i, n)| (i as u64 * 60, *n))
+                        .collect::<Vec<_>>(),
+            
         }
     }
 }

@@ -1,7 +1,7 @@
 use framework::sound::*;
 
 /// beeeeeeeeeeeeeee
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Beep
 {
     phase: f32,
