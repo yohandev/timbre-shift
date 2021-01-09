@@ -6,7 +6,7 @@ use framework::sound::*;
 #[derive(Default, Debug, Clone)]
 pub struct Beep
 {
-    /// (frequency, phase, cached phase++)
+    /// (frequency, clock, cached sine multiplier)
     waves: Box<[(f32, f32, f32)]>,
     /// volume multiplier of an individual note
     vol: f32,
@@ -15,6 +15,8 @@ pub struct Beep
     channels: usize,
     /// counts up down from channels
     channels_iter: usize,
+    /// output sample rate cached
+    sample_rate: f32,
 }
 
 impl Track for Beep
@@ -29,9 +31,9 @@ impl Track for Beep
         {
             self.channels_iter = self.channels;
 
-            for (_, phase, phase_inc) in self.waves.iter_mut()
+            for (_, clock, _) in self.waves.iter_mut()
             {
-                *phase = (*phase + *phase_inc) % 1.0;
+                *clock = (*clock + 1.0) % self.sample_rate;
             }
         }
         self.channels_iter -= 1;
@@ -39,22 +41,25 @@ impl Track for Beep
         // sum waves
         Some(self.waves
             .iter()
-            .map(|(_, p, _)| p.sin() * self.vol)
+            .map(|(_, c, m)| (c * m).sin() * self.vol)
             .sum())
     }
 
     fn tune(&mut self, channels: usize, sample_rate: usize)
     {
-        // build waves
-        for (hz, phase, phase_inc) in self.waves.iter_mut()
-        {
-            *phase = 0.0;
-            *phase_inc = *hz / sample_rate as f32;
-        }   
-        
-        // channels
+        use std::f32::consts::PI;
+
+        // conf
         self.channels = channels;
         self.channels_iter = channels;
+        self.sample_rate = sample_rate as f32;
+
+        // build waves
+        for (hz, clock, mult) in self.waves.iter_mut()
+        {
+            *clock = 0.0;
+            *mult = *hz * 2.0 * PI / self.sample_rate;
+        }
     }
 }
 
@@ -81,6 +86,7 @@ impl Beep
             vol,
             channels: 0,
             channels_iter: 0,
+            sample_rate: 0.0,
         }
     }
 }
@@ -89,11 +95,11 @@ impl Beep
 #[allow(non_upper_case_globals)]
 pub mod notes
 {
-    pub const CHROMATIC_SCALE: [f32; 25] =    [A3, Bb3, B3, C4, Db4,
-                                    D4, Eb4, E4, F4, Gb4,
-                                    G4, Ab4, A4, Bb4, B4,
-                                    C5, Db5, D5, Eb5, E5,
-                                    F5, Gb5, G5, Ab5, A5];
+    pub const CHROMATIC_SCALE: [f32; 25] = [A3, Bb3, B3, C4, Db4,
+                                            D4, Eb4, E4, F4, Gb4,
+                                            G4, Ab4, A4, Bb4, B4,
+                                            C5, Db5, D5, Eb5, E5,
+                                            F5, Gb5, G5, Ab5, A5];
 
     pub const A3:  f32 = 220.00;
     pub const Bb3: f32 = 233.08;
@@ -120,9 +126,4 @@ pub mod notes
     pub const G5:  f32 = 783.99;
     pub const Ab5: f32 = 830.61;
     pub const A5:  f32 = 880.00;
-
-    // pub fn a_major() -> HarmoniousBeep
-    // {
-    //     HarmoniousBeep::new(Box::new([A3, Db4, E4]))
-    // }
 }
