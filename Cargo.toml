@@ -6,4 +6,3 @@ edition = "2018"
 
 [dependencies]
 framework = { path = "../framework-rs" }
-rodio = "0.13.0"
